@@ -3,147 +3,71 @@ name: Publish NuGet Package and GitHub Release
 on:
   push:
     tags:
-      - 'v*'  # 触发条件：推送以 'v' 开头的标签，如 v1.0.0, v1.01, v2.5-beta.1
+      - 'v*'  # 仅当打标签如 v1.0.0, v1.2.3-beta.1 时触发
 
 jobs:
-  # ┌────────────────────┐
-  # │ 1. 提取版本 & 构建   │
-  # └────────────────────┘
-  build:
+  publish:
     runs-on: ubuntu-latest
-    outputs:
-      package_version: ${{ steps.version.outputs.package_version }}
-      assembly_version: ${{ steps.version.outputs.assembly_version }}
+     # ✅ 新增：必须添加权限，否则无法创建 Release
+    permissions:
+      contents: write  # 允许创建/更新 GitHub Release
+      # packages: read # 如果使用包注册表可开启
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.0.x'  # 支持 net48 和 netstandard2.0
-
-      - name: Extract Version from Git Tag
-        id: version
-        run: |
-          TAG_NAME='${{ github.ref_name }}'
-          
-          # 去掉 'v' 前缀
-          PACKAGE_VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
-          
-          # 如果版本号只有两位（如 1.01），自动补 .0 → 1.01.0
-          if [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+$ ]]; then
-            PACKAGE_VERSION="${PACKAGE_VERSION}.0"
-            echo "⚠️  自动补全版本号: ${PACKAGE_VERSION}"
-          fi
-          
-          # 提取主.次.修订（去掉 -beta, -rc 等预发布部分）
-          BASE_VERSION=$(echo "$PACKAGE_VERSION" | cut -d'-' -f1)
-          
-          # 拆分版本号
-          MAJOR=$(echo "$BASE_VERSION" | cut -d'.' -f1)
-          MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f2)
-          PATCH=$(echo "$BASE_VERSION" | cut -d'.' -f3)
-          
-          # 构造 AssemblyVersion = 主.次.修订.0
-          ASSEMBLY_VERSION="${MAJOR}.${MINOR}.${PATCH}.0"
-          
-          # 输出到后续步骤
-          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-          echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
-          
-          echo "✅ PackageVersion: $PACKAGE_VERSION"
-          echo "✅ AssemblyVersion:  $ASSEMBLY_VERSION"
-          
-          # 校验版本格式（必须是 x.y.z 或 x.y.z-suffix）
-          if ! [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
-            echo "❌ 错误：版本格式无效。请使用语义化版本，如 1.0.0 或 1.0.0-beta.1"
-            exit 1
-          fi
-        shell: bash
-
-      - name: Build Project
-        run: |
-          dotnet build DotNettyCoreRemoting/DotNettyCoreRemoting.csproj \
-            --configuration Release \
-            --no-restore
-          # 验证输出
-          echo "🔍 编译输出目录："
-          ls -la DotNettyCoreRemoting/bin/Release/netstandard2.0/ || echo "⚠️ 未生成 netstandard2.0 输出"
-          ls -la DotNettyCoreRemoting/bin/Release/net48/ || echo "⚠️ 未生成 net48 输出"
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: |
-            DotNettyCoreRemoting/bin/Release/netstandard2.0/
-            DotNettyCoreRemoting/bin/Release/net48/
-          retention-days: 7
-
-  # ┌────────────────────┐
-  # │ 2. 打包 NuGet       │
-  # └────────────────────┘
-  pack:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      package_version: ${{ needs.build.outputs.package_version }}
-    steps:
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      - name: Create Artifacts Directory
-        run: mkdir -p ./artifacts
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Extract Version
+        id: version
+        run: |
+          # 去掉 'v' 前缀
+          TAG_NAME='${{ github.ref_name }}'
+          VERSION_NO_V=$(echo "$TAG_NAME" | sed 's/^v//')
+          
+          # 提取主版本和次版本，用于 AssemblyVersion
+          # 例如: 5.9-beta.3 -> 5.9
+          BASE_VERSION=$(echo "$VERSION_NO_V" | cut -d'-' -f1)
+          MAJOR_MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f1,2)
+          
+          # 构造纯数字 AssemblyVersion (x.x.0.0)
+          ASSEMBLY_VERSION="${MAJOR_MINOR}.0.0"
+          
+          echo "package_version=$VERSION_NO_V" >> $GITHUB_OUTPUT
+          echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "✅ Extracted PackageVersion: $VERSION_NO_V"
+          echo "✅ Extracted AssemblyVersion:  $ASSEMBLY_VERSION"
+
+      # ✅ 移除了单独的 Build 步骤，Pack 会自动构建
 
       - name: Pack NuGet Package
         run: |
-          VERSION=${{ needs.build.outputs.package_version }}
-          ASSEMBLY_VERSION=${{ needs.build.outputs.assembly_version }}
           dotnet pack DotNettyCoreRemoting/DotNettyCoreRemoting.csproj \
             --configuration Release \
-            --no-build \
+            --no-restore \
             --include-symbols \
             -p:PackageId=DotNettyCoreRemoting.Test \
-            -p:PackageVersion=$VERSION \
-            -p:AssemblyVersion=$ASSEMBLY_VERSION \
-            -p:FileVersion=$ASSEMBLY_VERSION \
-            -p:InformationalVersion=$VERSION \
+            -p:PackageVersion=${{ steps.version.outputs.package_version }} \
+            -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }} \
+            -p:FileVersion=${{ steps.version.outputs.assembly_version }} \
+            -p:InformationalVersion=${{ steps.version.outputs.package_version }} \
             -p:RepositoryUrl=${{ github.repositoryUrl }} \
             -p:SymbolPackageFormat=snupkg \
             -o ./artifacts
 
-      - name: Upload Packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: packages
-          path: ./artifacts/
-          retention-days: 7
-
-  # ┌─────────────────────────┐
-  # │ 3. 创建 GitHub Release   │
-  # └─────────────────────────┘
-  github_release:
-    needs: pack
-    runs-on: ubuntu-latest
-    if: success()
-    permissions:
-      contents: write
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v4
-        with:
-          name: packages
-
+      # ✅ 新增：创建 GitHub Release 并上传打包文件
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        # 确保只在 tag 时运行
+        if: startsWith(github.ref, 'refs/tags/')  
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
@@ -153,37 +77,26 @@ jobs:
             - Symbols package for debugging
 
             Package ID: `DotNettyCoreRemoting.Test`
-            Version: `${{ needs.pack.outputs.package_version }}`
+            Version: `${{ steps.version.outputs.package_version }}`
 
             ⚠️ This is a **test package**, not the official release.
           draft: false
-          prerelease: ${{ contains(needs.pack.outputs.package_version, 'beta') || 
-                         contains(needs.pack.outputs.package_version, 'rc') ||
-                         contains(needs.pack.outputs.package_version, 'alpha') }}
+          prerelease: ${{ contains(steps.version.outputs.package_version, 'beta') || contains(steps.version.outputs.package_version, 'rc') || contains(steps.version.outputs.package_version, 'alpha') }}
           files: |
-            ./*.nupkg
-            ./*.snupkg
-          fail_on_unmatched_files: true
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ┌─────────────────────────┐
-  # │ 4. 发布到 NuGet.org     │
-  # └─────────────────────────┘
-  publish_nuget:
-    needs: github_release
-    runs-on: ubuntu-latest
-    if: >-
-      success() && 
-      !contains(needs.pack.outputs.package_version, 'beta') && 
-      !contains(needs.pack.outputs.package_version, 'rc') && 
-      !contains(needs.pack.outputs.package_version, 'alpha')
-    steps:
-      - name: Download Packages
-        uses: actions/download-artifact@v4
-        with:
-          name: packages
-
+      # ✅ 可选：发布到 NuGet.org（目前是测试包，可注释）
       - name: Publish to NuGet.org
         run: |
-          echo
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+      
+          dotnet nuget push ./artifacts/*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
