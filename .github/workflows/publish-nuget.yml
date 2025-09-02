@@ -49,8 +49,6 @@ jobs:
             --no-restore \
             -p:PackageVersion=${{ steps.version.outputs.package_version }} \
             -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }} \
-            -p:FileVersion=${{ steps.version.outputs.assembly_version }} \
-            -p:InformationalVersion=${{ steps.version.outputs.package_version }}
 
       - name: Pack NuGet Package
         run: |

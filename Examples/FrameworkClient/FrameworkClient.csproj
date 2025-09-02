@@ -197,5 +197,11 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\shared\shared.csproj">
+      <Project>{C17F748C-74B7-4B66-EDCB-FD378D75D3A1}</Project>
+      <Name>shared</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
