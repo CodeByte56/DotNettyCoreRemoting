@@ -9,16 +9,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    # ✅ 修复：正确缩进 permissions
     permissions:
-      contents: write  # 允许创建 GitHub Release
-      # packages: write # 如果发布到 GitHub Packages 可开启
+      contents: write  # 用于创建 GitHub Release
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
@@ -26,27 +24,39 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Extract Version
+      - name: Extract Version from Git Tag
         id: version
         run: |
-          # 去掉 'v' 前缀
           TAG_NAME='${{ github.ref_name }}'
-          VERSION_NO_V=$(echo "$TAG_NAME" | sed 's/^v//')
           
-          # 提取主版本和次版本，用于 AssemblyVersion
-          BASE_VERSION=$(echo "$VERSION_NO_V" | cut -d'-' -f1)
-          MAJOR_MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f1,2)
+          # 去掉 'v' 前缀 → 得到 1.5.3 或 1.5.3-beta.1
+          PACKAGE_VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
           
-          # 构造纯数字 AssemblyVersion (x.x.0.0)
-          ASSEMBLY_VERSION="${MAJOR_MINOR}.0.0"
+          # 提取主.次.修订（去掉 -beta, -rc 等预发布部分）
+          BASE_VERSION=$(echo "$PACKAGE_VERSION" | cut -d'-' -f1)  # 如 1.5.3
           
-          echo "package_version=$VERSION_NO_V" >> $GITHUB_OUTPUT
+          # 拆分版本号
+          MAJOR=$(echo "$BASE_VERSION" | cut -d'.' -f1)
+          MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f2)
+          PATCH=$(echo "$BASE_VERSION" | cut -d'.' -f3)
+          
+          # 构造 AssemblyVersion = 主.次.修订.0
+          ASSEMBLY_VERSION="${MAJOR}.${MINOR}.${PATCH}.0"
+          
+          # 输出到后续步骤使用
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
           
-          echo "✅ Extracted PackageVersion: $VERSION_NO_V"
-          echo "✅ Extracted AssemblyVersion: $ASSEMBLY_VERSION"
+          # 日志输出
+          echo "✅ PackageVersion (NuGet): $PACKAGE_VERSION"
+          echo "✅ AssemblyVersion:        $ASSEMBLY_VERSION"
+          
+          # 可选：校验版本格式
+          if ! [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
+            echo "❌ 错误：版本格式无效。请使用语义化版本，如 v1.0.0 或 v1.0.0-beta.1"
+            exit 1
+          fi
 
-      # ✅ 确保 artifacts 目录存在
       - name: Create Artifacts Directory
         run: mkdir -p ./artifacts
 
@@ -65,8 +75,7 @@ jobs:
             -p:SymbolPackageFormat=snupkg \
             -o ./artifacts
 
-      # ✅ 打包编译产物（bin/Release/net8.0）
-      - name: Create Bin Package
+      - name: Create Bin Package (Compiled Binaries)
         run: |
           VERSION=${{ steps.version.outputs.package_version }}
           BIN_DIR="DotNettyCoreRemoting/bin/Release/net8.0"
@@ -74,7 +83,7 @@ jobs:
           
           if [ ! -d "$BIN_DIR" ]; then
             echo "❌ 编译输出目录不存在: $BIN_DIR"
-            ls -la DotNettyCoreRemoting/bin/Release/
+            ls -la DotNettyCoreRemoting/bin/Release/ || true
             exit 1
           fi
 
@@ -82,13 +91,11 @@ jobs:
           zip -r "$OUTPUT_ZIP" *.dll *.pdb *.xml *.deps.json *.runtimeconfig.json
           echo "✅ 编译产物已打包: $OUTPUT_ZIP"
 
-      # ✅ 调试：列出所有生成的文件
       - name: List All Artifacts
         run: |
-          echo "📄 所有生成的文件："
+          echo "📄 生成的构建产物："
           ls -la ./artifacts/
 
-      # ✅ 创建 GitHub Release 并上传
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
@@ -106,7 +113,9 @@ jobs:
 
             ⚠️ This is a **test package**, not the official release.
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.package_version, 'beta') || contains(steps.version.outputs.package_version, 'rc') || contains(steps.version.outputs.package_version, 'alpha') }}
+          prerelease: ${{ contains(steps.version.outputs.package_version, 'beta') || 
+                         contains(steps.version.outputs.package_version, 'rc') || 
+                         contains(steps.version.outputs.package_version, 'alpha') }}
           files: |
             ./artifacts/*.nupkg
             ./artifacts/*.snupkg
@@ -115,17 +124,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ✅ 发布到 NuGet.org
       - name: Publish to NuGet.org
-        if: startsWith(github.ref, 'refs/tags/') && !contains(steps.version.outputs.package_version, 'beta') && !contains(steps.version.outputs.package_version, 'rc') && !contains(steps.version.outputs.package_version, 'alpha')
+        if: >-
+          startsWith(github.ref, 'refs/tags/') &&
+          !contains(steps.version.outputs.package_version, 'beta') &&
+          !contains(steps.version.outputs.package_version, 'rc') &&
+          !contains(steps.version.outputs.package_version, 'alpha')
         run: |
-          # 推送主包
+          echo "🚀 发布到 NuGet.org: ${{ steps.version.outputs.package_version }}"
+          
           dotnet nuget push ./artifacts/*.nupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-          # 推送符号包
           dotnet nuget push ./artifacts/*.snupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
