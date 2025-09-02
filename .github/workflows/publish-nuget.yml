@@ -1,0 +1,65 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*'  # 仅当打标签如 v1.0.0 时触发
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Extract Version
+        id: version
+        run: |
+          VERSION=$(echo '${{ github.ref_name }}' | sed 's/^v//')
+          echo "version extracted: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build (Release)
+        run: |
+          dotnet build DotNettyCoreRemoting/DotNettyCoreRemoting.csproj \
+            --configuration Release \
+            --no-restore \
+            -p:PackageVersion=${{ steps.version.outputs.VERSION }} \
+            -p:AssemblyVersion=${{ steps.version.outputs.VERSION }} \
+            -p:FileVersion=${{ steps.version.outputs.VERSION }}
+
+      - name: Pack NuGet Package
+        run: |
+          dotnet pack DotNettyCoreRemoting/DotNettyCoreRemoting.csproj \
+            --configuration Release \
+            --no-restore \
+            --include-symbols \
+            -p:PackageVersion=${{ steps.version.outputs.VERSION }} \
+            -p:AssemblyVersion=${{ steps.version.outputs.VERSION }} \
+            -p:FileVersion=${{ steps.version.outputs.VERSION }} \
+            -p:RepositoryUrl=${{ github.repositoryUrl }} \
+            -p:SymbolPackageFormat=snupkg \
+            -o ./artifacts
+
+      - name: Publish to NuGet.org
+        run: |
+          # Push main package
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+          # Push symbols package (for debugging)
+          dotnet nuget push ./artifacts/*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

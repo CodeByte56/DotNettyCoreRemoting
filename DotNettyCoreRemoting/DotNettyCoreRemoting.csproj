@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<Title>DotNettyCoreRemoting</Title>
 		<Authors>Jmeory</Authors>
 		<Description>Easy to use DotNettyRPC Remoting library for .NET Core and .NET Framework</Description>
@@ -12,6 +12,13 @@
 		<Company>无</Company>
 		<AssemblyVersion>1.2.2.1</AssemblyVersion>
 		<PackageVersion>1.2.2.1</PackageVersion>
+		<PackageProjectUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<!-- 包含源码和符号（用于调试） -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PackageReleaseNotes>
 			Easy to use Remoting library for .NET Core and .NET Framework
 		</PackageReleaseNotes>
