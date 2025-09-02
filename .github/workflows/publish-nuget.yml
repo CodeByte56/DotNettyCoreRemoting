@@ -63,7 +63,7 @@ jobs:
             --configuration Release \
             --no-restore \
             --include-symbols \
-            -p:PackageId=DotNettyCoreRemoting.Test \
+            -p:PackageId=DotNettyCoreRemoting \
             -p:PackageVersion=${{ needs.extract-version.outputs.package_version }} \
             -p:AssemblyVersion=${{ needs.extract-version.outputs.assembly_version }} \
             -p:FileVersion=${{ needs.extract-version.outputs.assembly_version }} \
