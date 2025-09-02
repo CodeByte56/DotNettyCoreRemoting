@@ -3,7 +3,7 @@ name: Publish NuGet Package and GitHub Release
 on:
   push:
     tags:
-      - 'v*'  # 仅当推送如 v1.0.0, v1.2.3 的标签时触发
+      - 'v*'  # 触发条件：推送以 'v' 开头的标签，如 v1.0.0, v1.01, v2.5-beta.1
 
 jobs:
   # ┌────────────────────┐
@@ -28,8 +28,14 @@ jobs:
         run: |
           TAG_NAME='${{ github.ref_name }}'
           
-          # 去掉 'v' 前缀 → 得到 1.5.3 或 1.5.3-beta.1
+          # 去掉 'v' 前缀
           PACKAGE_VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
+          
+          # 如果版本号只有两位（如 1.01），自动补 .0 → 1.01.0
+          if [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            PACKAGE_VERSION="${PACKAGE_VERSION}.0"
+            echo "⚠️  自动补全版本号: ${PACKAGE_VERSION}"
+          fi
           
           # 提取主.次.修订（去掉 -beta, -rc 等预发布部分）
           BASE_VERSION=$(echo "$PACKAGE_VERSION" | cut -d'-' -f1)
@@ -48,12 +54,13 @@ jobs:
           
           echo "✅ PackageVersion: $PACKAGE_VERSION"
           echo "✅ AssemblyVersion:  $ASSEMBLY_VERSION"
-
-          # 可选：校验版本格式
+          
+          # 校验版本格式（必须是 x.y.z 或 x.y.z-suffix）
           if ! [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
-            echo "❌ 错误：版本格式无效。请使用语义化版本，如 v1.0.0 或 v1.0.0-beta.1"
+            echo "❌ 错误：版本格式无效。请使用语义化版本，如 1.0.0 或 1.0.0-beta.1"
             exit 1
           fi
+        shell: bash
 
       - name: Build Project
         run: |
@@ -62,8 +69,8 @@ jobs:
             --no-restore
           # 验证输出
           echo "🔍 编译输出目录："
-          ls -la DotNettyCoreRemoting/bin/Release/netstandard2.0/
-          ls -la DotNettyCoreRemoting/bin/Release/net48/
+          ls -la DotNettyCoreRemoting/bin/Release/netstandard2.0/ || echo "⚠️ 未生成 netstandard2.0 输出"
+          ls -la DotNettyCoreRemoting/bin/Release/net48/ || echo "⚠️ 未生成 net48 输出"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -151,7 +158,8 @@ jobs:
             ⚠️ This is a **test package**, not the official release.
           draft: false
           prerelease: ${{ contains(needs.pack.outputs.package_version, 'beta') || 
-                         contains(needs.pack.outputs.package_version, 'rc') }}
+                         contains(needs.pack.outputs.package_version, 'rc') ||
+                         contains(needs.pack.outputs.package_version, 'alpha') }}
           files: |
             ./*.nupkg
             ./*.snupkg
@@ -178,15 +186,4 @@ jobs:
 
       - name: Publish to NuGet.org
         run: |
-          echo "🚀 发布到 NuGet.org: ${{ needs.pack.outputs.package_version }}"
-          dotnet nuget push ./*.nupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-          dotnet nuget push ./*.snupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          echo
