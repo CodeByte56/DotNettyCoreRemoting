@@ -8,7 +8,11 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
+     # ✅ 新增：必须添加权限，否则无法创建 Release
+    permissions:
+      contents: write  # 允许创建/更新 GitHub Release
+      # packages: read # 如果使用包注册表可开启
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
