@@ -3,11 +3,11 @@ name: Publish NuGet Package and GitHub Release
 on:
   push:
     tags:
-      - 'v*'  # 触发整个流程
+      - 'v*'  # 仅当打标签如 v1.0.0, v1.2.3-beta.1 时触发
 
 jobs:
   # ┌────────────────────┐
-  # │ 1. 提取版本 & 构建  │
+  # │ 1. 提取版本 & 构建   │
   # └────────────────────┘
   build:
     runs-on: ubuntu-latest
@@ -15,39 +15,59 @@ jobs:
       package_version: ${{ steps.version.outputs.package_version }}
       assembly_version: ${{ steps.version.outputs.assembly_version }}
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
+      - name: Restore dependencies
         run: dotnet restore
 
-      - name: Extract Version
+      - name: Extract Version from Git Tag
         id: version
         run: |
           TAG_NAME='${{ github.ref_name }}'
+          
+          # 去掉 'v' 前缀 → 得到 1.5.3 或 1.5.3-beta.1
           PACKAGE_VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
-          BASE_VERSION=$(echo "$PACKAGE_VERSION" | cut -d'-' -f1)
+          
+          # 提取主.次.修订（去掉 -beta, -rc 等预发布部分）
+          BASE_VERSION=$(echo "$PACKAGE_VERSION" | cut -d'-' -f1)  # 如 1.5.3
+          
+          # 拆分版本号
           MAJOR=$(echo "$BASE_VERSION" | cut -d'.' -f1)
           MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f2)
           PATCH=$(echo "$BASE_VERSION" | cut -d'.' -f3)
+          
+          # 构造 AssemblyVersion = 主.次.修订.0
           ASSEMBLY_VERSION="${MAJOR}.${MINOR}.${PATCH}.0"
-
+          
+          # 输出到后续步骤使用
           echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
+          
+          # 日志输出
+          echo "✅ PackageVersion (NuGet): $PACKAGE_VERSION"
+          echo "✅ AssemblyVersion:        $ASSEMBLY_VERSION"
+          
+          # 可选：校验版本格式
+          if ! [[ "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.\-]+)?$ ]]; then
+            echo "❌ 错误：版本格式无效。请使用语义化版本，如 v1.0.0 或 v1.0.0-beta.1"
+            exit 1
+          fi
 
       - name: Build (No Pack)
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build DotNettyCoreRemoting/DotNettyCoreRemoting.csproj --configuration Release --no-restore
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: DotNettyCoreRemoting/bin/Release/net8.0/
+          retention-days: 7
 
   # ┌────────────────────┐
   # │ 2. 打包（NuGet + Bin）│
@@ -59,7 +79,7 @@ jobs:
       package_version: ${{ needs.build.outputs.package_version }}
     steps:
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-output
           path: DotNettyCoreRemoting/bin/Release/net8.0/
@@ -69,10 +89,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Create Artifacts Dir
+      - name: Create Artifacts Directory
         run: mkdir -p ./artifacts
 
-      - name: Pack NuGet
+      - name: Pack NuGet Package
         run: |
           VERSION=${{ needs.build.outputs.package_version }}
           ASSEMBLY_VERSION=${{ needs.build.outputs.assembly_version }}
@@ -85,20 +105,32 @@ jobs:
             -p:AssemblyVersion=$ASSEMBLY_VERSION \
             -p:FileVersion=$ASSEMBLY_VERSION \
             -p:InformationalVersion=$VERSION \
+            -p:RepositoryUrl=${{ github.repositoryUrl }} \
             -p:SymbolPackageFormat=snupkg \
             -o ./artifacts
 
-      - name: Create Bin Zip
+      - name: Create Bin Package (Compiled Binaries)
         run: |
           VERSION=${{ needs.build.outputs.package_version }}
-          cd DotNettyCoreRemoting/bin/Release/net8.0
-          zip -r "../../../../../artifacts/DotNettyCoreRemoting.Test.${VERSION}-bin.zip" *.dll *.pdb *.xml *.deps.json *.runtimeconfig.json
+          BIN_DIR="DotNettyCoreRemoting/bin/Release/net8.0"
+          OUTPUT_ZIP="./artifacts/DotNettyCoreRemoting.Test.${VERSION}-bin.zip"
+          
+          if [ ! -d "$BIN_DIR" ]; then
+            echo "❌ 编译输出目录不存在: $BIN_DIR"
+            ls -la DotNettyCoreRemoting/bin/Release/ || true
+            exit 1
+          fi
+
+          cd "$BIN_DIR"
+          zip -r "$OUTPUT_ZIP" *.dll *.pdb *.xml *.deps.json *.runtimeconfig.json
+          echo "✅ 编译产物已打包: $OUTPUT_ZIP"
 
       - name: Upload Packages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages
           path: ./artifacts/
+          retention-days: 7
 
   # ┌─────────────────────────┐
   # │ 3. 创建 GitHub Release   │
@@ -106,12 +138,12 @@ jobs:
   github_release:
     needs: pack
     runs-on: ubuntu-latest
-    if: success()  # 总是执行（即使是预发布）
+    if: success()
     permissions:
       contents: write
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages
 
@@ -121,14 +153,24 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
-            Compiled binaries and test NuGet packages.
+            This release includes:
+            - NuGet package for testing
+            - Symbols package for debugging
+            - Compiled binaries (DLLs, PDBs, XML docs)
+
+            Package ID: `DotNettyCoreRemoting.Test`
+            Version: `${{ needs.pack.outputs.package_version }}`
+
             ⚠️ This is a **test package**, not the official release.
           draft: false
-          prerelease: ${{ contains(needs.pack.outputs.package_version, 'beta') || contains(needs.pack.outputs.package_version, 'rc') }}
+          prerelease: ${{ contains(needs.pack.outputs.package_version, 'beta') || 
+                         contains(needs.pack.outputs.package_version, 'rc') || 
+                         contains(needs.pack.outputs.package_version, 'alpha') }}
           files: |
             ./*.nupkg
             ./*.snupkg
             ./*-bin.zip
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -145,13 +187,21 @@ jobs:
       !contains(needs.pack.outputs.package_version, 'alpha')
     steps:
       - name: Download Packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages
 
       - name: Publish to NuGet.org
         run: |
-          dotnet nuget push ./*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-          dotnet nuget push ./*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          echo "🚀 发布到 NuGet.org: ${{ needs.pack.outputs.package_version }}"
+          dotnet nuget push ./*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+          dotnet nuget push ./*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
