@@ -61,8 +61,6 @@ jobs:
             -p:PackageId=DotNettyCoreRemoting.Test \  # 临时测试包名
             -p:PackageVersion=${{ steps.version.outputs.package_version }} \
             -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }} \
-            -p:FileVersion=${{ steps.version.outputs.assembly_version }} \
-            -p:InformationalVersion=${{ steps.version.outputs.package_version }} \
             -p:RepositoryUrl=${{ github.repositoryUrl }} \
             -p:SymbolPackageFormat=snupkg \
             -o ./artifacts
