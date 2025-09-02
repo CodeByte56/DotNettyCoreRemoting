@@ -3,7 +3,7 @@ name: Publish NuGet Package and GitHub Release
 on:
   push:
     tags:
-      - 'v*'  # 触发条件：如 v1.0.0, v1.2.3-beta.1
+      - 'v*'  # 如 v1.0.0, v1.2.3-beta.1
 
 jobs:
   # ┌────────────────────┐
@@ -23,7 +23,7 @@ jobs:
         run: |
           TAG_NAME='${{ github.ref_name }}'
           VERSION_NO_V=$(echo "$TAG_NAME" | sed 's/^v//')
-          ASSEMBLY_VERSION="${VERSION_NO_V}"
+          ASSEMBLY_VERSION="${VERSION_NO_V}"  # 现在使用完整版本
           
           echo "package_version=$VERSION_NO_V" >> $GITHUB_OUTPUT
           echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
@@ -65,13 +65,13 @@ jobs:
             -p:InformationalVersion=${{ needs.extract-version.outputs.package_version }} \
             -p:RepositoryUrl=${{ github.repositoryUrl }} \
             -p:SymbolPackageFormat=snupkg \
-            -o ./artifacts
+            -o ./artifacts  # 输出到 ./artifacts
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
-          path: ./artifacts/
+          path: ./artifacts/         # ✅ 上传 ./artifacts/
           retention-days: 7
 
   # ┌─────────────────────────┐
@@ -81,13 +81,19 @@ jobs:
     needs: build-and-pack
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 允许创建 GitHub Release
+      contents: write
     if: success()
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
           name: nuget-packages
+          path: ./artifacts  # ✅ 修复：下载到 ./artifacts 目录！
+
+      - name: List Files (Debug)
+        run: |
+          echo "📁 Files in ./artifacts:"
+          ls -la ./artifacts/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -104,10 +110,9 @@ jobs:
 
             ⚠️ This is an official release.
           draft: false
-          # ✅ 修复：改为单行表达式！
           prerelease: ${{ contains(needs.build-and-pack.outputs.package_version, 'beta') || contains(needs.build-and-pack.outputs.package_version, 'rc') || contains(needs.build-and-pack.outputs.package_version, 'alpha') }}
           files: |
-            ./artifacts/*.nupkg
+            ./artifacts/*.nupkg     # ✅ 现在路径正确了
             ./artifacts/*.snupkg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -118,25 +123,29 @@ jobs:
   publish-to-nuget:
     needs: create-github-release
     runs-on: ubuntu-latest
-    # ✅ 修复：改为单行 if 条件！
     if: success() && !contains(needs.build-and-pack.outputs.package_version, 'beta') && !contains(needs.build-and-pack.outputs.package_version, 'rc') && !contains(needs.build-and-pack.outputs.package_version, 'alpha')
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
           name: nuget-packages
+          path: ./artifacts  # ✅ 修复：下载到 ./artifacts 目录！
+
+      - name: Verify Artifacts Exist
+        run: |
+          echo "🔍 Checking for packages in ./artifacts..."
+          if [ ! -d "./artifacts" ]; then
+            echo "❌ Error: Directory './artifacts' does not exist!"
+            exit 1
+          fi
+          if [ ! -f ./artifacts/*.nupkg ]; then
+            echo "❌ No .nupkg file found in ./artifacts!"
+            exit 1
+          else
+            echo "✅ Found packages:"
+            ls -la ./artifacts/
+          fi
 
       - name: Publish to NuGet.org
         run: |
-          echo "🚀 Publishing to NuGet.org: ${{ needs.build-and-pack.outputs.package_version }}"
-          dotnet nuget push ./artifacts/*.nupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-          dotnet nuget push ./artifacts/*.snupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          echo "🚀 Publishing to NuGet.org: ${{ 
