@@ -108,11 +108,8 @@ jobs:
 
             ⚠️ This is an official release.
           draft: false
-          prerelease: ${{ 
-            contains(needs.build-and-pack.outputs.package_version, 'beta') || 
-            contains(needs.build-and-pack.outputs.package_version, 'rc') || 
-            contains(needs.build-and-pack.outputs.package_version, 'alpha') 
-          }}
+          # ✅ 修复：改为单行表达式！
+          prerelease: ${{ contains(needs.build-and-pack.outputs.package_version, 'beta') || contains(needs.build-and-pack.outputs.package_version, 'rc') || contains(needs.build-and-pack.outputs.package_version, 'alpha') }}
           files: |
             ./artifacts/*.nupkg
             ./artifacts/*.snupkg
@@ -125,6 +122,7 @@ jobs:
   publish-to-nuget:
     needs: create-github-release
     runs-on: ubuntu-latest
+    # ✅ 修复：改为单行 if 条件！
     if: success() && !contains(needs.build-and-pack.outputs.package_version, 'beta') && !contains(needs.build-and-pack.outputs.package_version, 'rc') && !contains(needs.build-and-pack.outputs.package_version, 'alpha')
     steps:
       - name: Download Packages
