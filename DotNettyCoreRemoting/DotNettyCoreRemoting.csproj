@@ -10,8 +10,8 @@
 		<Copyright>H</Copyright>
 		<PackageTags>Remoting RPC Network</PackageTags>
 		<Company>无</Company>
-		<AssemblyVersion>1.2.2.1</AssemblyVersion>
-		<PackageVersion>1.2.2.1</PackageVersion>
+		<AssemblyVersion>1.2.2.2</AssemblyVersion>
+		<PackageVersion>1.2.2.2</PackageVersion>
 		<PackageProjectUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
