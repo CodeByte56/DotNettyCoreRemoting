@@ -8,11 +8,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-     # ✅ 新增：必须添加权限，否则无法创建 Release
+
+    # ✅ 修复：正确缩进 permissions
     permissions:
-      contents: write  # 允许创建/更新 GitHub Release
-      # packages: read # 如果使用包注册表可开启
-      
+      contents: write  # 允许创建 GitHub Release
+      # packages: write # 如果发布到 GitHub Packages 可开启
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,7 +34,6 @@ jobs:
           VERSION_NO_V=$(echo "$TAG_NAME" | sed 's/^v//')
           
           # 提取主版本和次版本，用于 AssemblyVersion
-          # 例如: 5.9-beta.3 -> 5.9
           BASE_VERSION=$(echo "$VERSION_NO_V" | cut -d'-' -f1)
           MAJOR_MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f1,2)
           
@@ -44,9 +44,11 @@ jobs:
           echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
           
           echo "✅ Extracted PackageVersion: $VERSION_NO_V"
-          echo "✅ Extracted AssemblyVersion:  $ASSEMBLY_VERSION"
+          echo "✅ Extracted AssemblyVersion: $ASSEMBLY_VERSION"
 
-      # ✅ 移除了单独的 Build 步骤，Pack 会自动构建
+      # ✅ 确保 artifacts 目录存在
+      - name: Create Artifacts Directory
+        run: mkdir -p ./artifacts
 
       - name: Pack NuGet Package
         run: |
@@ -63,11 +65,33 @@ jobs:
             -p:SymbolPackageFormat=snupkg \
             -o ./artifacts
 
-      # ✅ 新增：创建 GitHub Release 并上传打包文件
+      # ✅ 打包编译产物（bin/Release/net8.0）
+      - name: Create Bin Package
+        run: |
+          VERSION=${{ steps.version.outputs.package_version }}
+          BIN_DIR="DotNettyCoreRemoting/bin/Release/net8.0"
+          OUTPUT_ZIP="./artifacts/DotNettyCoreRemoting.Test.${VERSION}-bin.zip"
+          
+          if [ ! -d "$BIN_DIR" ]; then
+            echo "❌ 编译输出目录不存在: $BIN_DIR"
+            ls -la DotNettyCoreRemoting/bin/Release/
+            exit 1
+          fi
+
+          cd "$BIN_DIR"
+          zip -r "$OUTPUT_ZIP" *.dll *.pdb *.xml *.deps.json *.runtimeconfig.json
+          echo "✅ 编译产物已打包: $OUTPUT_ZIP"
+
+      # ✅ 调试：列出所有生成的文件
+      - name: List All Artifacts
+        run: |
+          echo "📄 所有生成的文件："
+          ls -la ./artifacts/
+
+      # ✅ 创建 GitHub Release 并上传
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        # 确保只在 tag 时运行
-        if: startsWith(github.ref, 'refs/tags/')  
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
@@ -75,6 +99,7 @@ jobs:
             This release includes:
             - NuGet package for testing
             - Symbols package for debugging
+            - Compiled binaries (DLLs, PDBs, XML docs)
 
             Package ID: `DotNettyCoreRemoting.Test`
             Version: `${{ steps.version.outputs.package_version }}`
@@ -85,18 +110,25 @@ jobs:
           files: |
             ./artifacts/*.nupkg
             ./artifacts/*.snupkg
+            ./artifacts/*-bin.zip
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ✅ 可选：发布到 NuGet.org（目前是测试包，可注释）
-      # - name: Publish to NuGet.org
-      #   run: |
-      #     dotnet nuget push ./artifacts/*.nupkg \
-      #       --api-key ${{ secrets.NUGET_API_KEY }} \
-      #       --source https://api.nuget.org/v3/index.json \
-      #       --skip-duplicate
-      # 
-      #     dotnet nuget push ./artifacts/*.snupkg \
-      #       --api-key ${{ secrets.NUGET_API_KEY }} \
-      #       --source https://api.nuget.org/v3/index.json \
-      #       --skip-duplicate
+      # ✅ 发布到 NuGet.org
+      - name: Publish to NuGet.org
+        if: startsWith(github.ref, 'refs/tags/') && !contains(steps.version.outputs.package_version, 'beta') && !contains(steps.version.outputs.package_version, 'rc') && !contains(steps.version.outputs.package_version, 'alpha')
+        run: |
+          # 推送主包
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+          # 推送符号包
+          dotnet nuget push ./artifacts/*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
