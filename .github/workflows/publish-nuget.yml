@@ -33,9 +33,8 @@ jobs:
           echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
           
           echo "✅ PackageVersion: $VERSION_NO_V"
-          echo "✅ AssemblyVersion:  $ASSEMBLY_VERSION"
+          echo "✅ AssemblyVersion: $ASSEMBLY_VERSION"
         shell: bash
-
 
   # ┌────────────────────┐
   # │ 2. 构建 & 打包        │
@@ -79,7 +78,6 @@ jobs:
           path: ./artifacts/
           retention-days: 7
 
-
   # ┌─────────────────────────┐
   # │ 3. 创建 GitHub Release     │
   # └─────────────────────────┘
@@ -87,7 +85,7 @@ jobs:
     needs: build-and-pack
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 允许创建 Release
+      contents: write  # 允许创建 GitHub Release
     if: success()
     steps:
       - name: Download Packages
@@ -102,13 +100,13 @@ jobs:
           name: Release ${{ github.ref_name }}
           body: |
             This release includes:
-            - NuGet package for testing
+            - NuGet package
             - Symbols package for debugging
 
-            Package ID: `DotNettyCoreRemoting.Test`
-            Version: `${{ needs.build-and-pack.outputs.package_version }}`
+            **Package ID**: \`DotNettyCoreRemoting\`
+            **Version**: \`${{ needs.build-and-pack.outputs.package_version }}\`
 
-            ⚠️ This is a **test package**, not the official release.
+            ⚠️ This is an official release.
           draft: false
           prerelease: ${{ 
             contains(needs.build-and-pack.outputs.package_version, 'beta') || 
@@ -121,18 +119,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
   # ┌─────────────────────────┐
   # │ 4. 发布到 NuGet.org       │
   # └─────────────────────────┘
   publish-to-nuget:
     needs: create-github-release
     runs-on: ubuntu-latest
-    if: >-
-      success() &&
-      !contains(needs.build-and-pack.outputs.package_version, 'beta') &&
-      !contains(needs.build-and-pack.outputs.package_version, 'rc') &&
-      !contains(needs.build-and-pack.outputs.package_version, 'alpha')
+    if: success() && !contains(needs.build-and-pack.outputs.package_version, 'beta') && !contains(needs.build-and-pack.outputs.package_version, 'rc') && !contains(needs.build-and-pack.outputs.package_version, 'alpha')
     steps:
       - name: Download Packages
         uses: actions/download-artifact@v4
