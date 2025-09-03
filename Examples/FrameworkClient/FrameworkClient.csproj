@@ -34,6 +34,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Castle.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Castle.Core.5.1.0\lib\net462\Castle.Core.dll</HintPath>
     </Reference>
@@ -55,8 +59,8 @@
     <Reference Include="DotNetty.Transport, Version=0.7.6.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
       <HintPath>..\..\packages\DotNetty.Transport.0.7.6\lib\net472\DotNetty.Transport.dll</HintPath>
     </Reference>
-    <Reference Include="DotNettyCoreRemoting, Version=1.2.2.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\DotNettyCoreRemoting.1.2.2.1\lib\net48\DotNettyCoreRemoting.dll</HintPath>
+    <Reference Include="DotNettyCoreRemoting, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\DotNettyCoreRemoting.1.2.2.2\lib\net48\DotNettyCoreRemoting.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -103,7 +107,7 @@
     <Reference Include="System.Configuration.ConfigurationManager, Version=6.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Configuration.ConfigurationManager.6.0.2\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
     </Reference>
-    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.OracleClient" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.5.0.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
@@ -181,17 +185,7 @@
       <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -199,7 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\shared\shared.csproj">
-      <Project>{C17F748C-74B7-4B66-EDCB-FD378D75D3A1}</Project>
+      <Project>{c17f748c-74b7-4b66-edcb-fd378d75d3a1}</Project>
       <Name>shared</Name>
     </ProjectReference>
   </ItemGroup>
