@@ -49,16 +49,24 @@ namespace DotNettyCoreRemoting.Handler
             }
             catch (Exception ex)
             {
-                var resultContext = new ClientRpcContext();
-                resultContext.Error = true;
-                resultContext.ErrorMessage = ex.Message;
+                var resultContext = new ClientRpcContext()
+                {
+                    Error = true,
+                    ErrorMessage = ex.Message
+                };
 
                 responseBytes = _rpcServer.Serializer.Serialize(resultContext);
             }
 
             if (responseBytes == null || responseBytes.Length == 0)
             {
-                return;
+                var resultContext = new ClientRpcContext()
+                {
+                    Error = true,
+                    ErrorMessage = "No response from server"
+                };
+
+                responseBytes = _rpcServer.Serializer.Serialize(resultContext);
             }
 
             var responseBuffer = Unpooled.WrappedBuffer(responseBytes);
@@ -67,29 +75,16 @@ namespace DotNettyCoreRemoting.Handler
             {
                 await context.WriteAndFlushAsync(responseBuffer);
             }
-            catch (Exception ex)
+            finally
             {
                 responseBuffer?.Release(); // 只在这里释放
             }
+
         }
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
             context.CloseAsync();
-        }
-
-
-        [Serializable] // 如果你用 BinaryFormatter，需要这个
-        public class RpcErrorResponse
-        {
-            public bool Error { get; set; }
-            public string Message { get; set; }
-
-            public RpcErrorResponse(string message)
-            {
-                Error = true;
-                Message = message;
-            }
         }
     }
 }
