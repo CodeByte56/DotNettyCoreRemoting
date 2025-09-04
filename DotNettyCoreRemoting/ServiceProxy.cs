@@ -145,7 +145,7 @@ namespace DotNettyCoreRemoting
             var client = AsyncHelper.RunSync(() => DotNettyClientManager._bootstrap.ConnectAsync(_client.ipEndPoint()));
 
             if (client == null)
-                throw new Exception("连接到服务端失败!");
+                throw new Exception("Failed to connect to the server!");
 
             try
             {
@@ -239,7 +239,7 @@ namespace DotNettyCoreRemoting
 
 
             if (client == null)
-                throw new Exception("连接到服务端失败!");
+                throw new Exception("Failed to connect to the server!");
 
             try
             {
