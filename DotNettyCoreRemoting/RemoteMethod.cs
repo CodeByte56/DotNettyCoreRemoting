@@ -66,7 +66,7 @@ namespace DotNettyCoreRemoting
                 var service = _ServiceRegistry.GetService(callMessage.ServiceName);
                 if (service == null)
                 {
-                    throw new InvalidOperationException($"服务 '{callMessage.ServiceName}' 不存在或未正确注册。");
+                    throw new InvalidOperationException($"Service '{callMessage.ServiceName}' does not exist or is not properly registered.");
                 }
 
                 var serviceInterfaceType = registration.InterfaceType;
@@ -80,29 +80,29 @@ namespace DotNettyCoreRemoting
 
                 parameterValues = MapArguments(parameterValues, parameterTypes);
 
-          
+
                 object result = method.Invoke(service, parameterValues);
 
-   
+
                 var returnType = method.ReturnType;
                 if (result != null && typeof(Task).IsAssignableFrom(returnType))
                 {
-    
+
                     var resultTask = (Task)result;
 
                     // 安全同步等待 Task
 
                     resultTask.ConfigureAwait(false).GetAwaiter().GetResult();
-  
+
 
                     if (returnType.IsGenericType)
                     {
-           
+
                         result = returnType.GetProperty("Result")?.GetValue(resultTask);
                     }
                     else // ordinary non-generic task
                     {
- 
+
                         result = null;
                     }
                 }
@@ -113,7 +113,7 @@ namespace DotNettyCoreRemoting
                       args: parameterValues,
                       returnValue: result);
 
-            
+
             }
             catch (Exception ex)
             {
