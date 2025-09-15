@@ -1,6 +1,7 @@
 ﻿using DotNetty.Buffers;
 using DotNetty.Handlers.Flow;
 using DotNetty.Transport.Channels;
+using DotNettyCoreRemoting.Logging;
 using DotNettyCoreRemoting.RpcMessaging;
 using System;
 using System.Collections.Generic;
@@ -49,6 +50,7 @@ namespace DotNettyCoreRemoting.Handler
             }
             catch (Exception ex)
             {
+                Logger.Error(typeof(ServerHandler), "处理客户端请求时发生错误", ex);
                 var resultContext = new ClientRpcContext()
                 {
                     Error = true,
@@ -60,6 +62,7 @@ namespace DotNettyCoreRemoting.Handler
 
             if (responseBytes == null || responseBytes.Length == 0)
             {
+                Logger.Error(typeof(ServerHandler), "服务器处理请求后没有生成响应数据");
                 var resultContext = new ClientRpcContext()
                 {
                     Error = true,
@@ -84,6 +87,7 @@ namespace DotNettyCoreRemoting.Handler
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
+            Logger.Error(typeof(ServerHandler), $"服务器异常 - 远程地址: {context.Channel.RemoteAddress}", exception);
             context.CloseAsync();
         }
     }

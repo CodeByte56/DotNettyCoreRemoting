@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DotNettyCoreRemoting.Logging;
 
 namespace DotNettyCoreRemoting.Util
 {
@@ -19,7 +20,15 @@ namespace DotNettyCoreRemoting.Util
         /// <param name="func">任务</param>
         public static void RunSync(Func<Task> func)
         {
-            _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+            try
+            {
+                _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(typeof(AsyncHelper), "异步转同步执行失败", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -30,7 +39,15 @@ namespace DotNettyCoreRemoting.Util
         /// <returns></returns>
         public static TResult RunSync<TResult>(Func<Task<TResult>> func)
         {
-            return _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+            try
+            {
+                return _myTaskFactory.StartNew(func).Unwrap().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(typeof(AsyncHelper), "异步转同步执行失败(带返回值)", ex);
+                throw;
+            }
         }
     }
 }

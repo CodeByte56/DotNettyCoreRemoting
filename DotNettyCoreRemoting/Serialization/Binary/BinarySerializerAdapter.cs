@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization.Formatters.Binary;
+using DotNettyCoreRemoting.Logging;
 
 namespace DotNettyCoreRemoting.Serialization.Binary
 {
@@ -59,8 +60,16 @@ namespace DotNettyCoreRemoting.Serialization.Binary
         /// <returns>Serialized data</returns>
         public byte[] Serialize<T>(T graph)
         {
-            var binaryFormatter = GetFormatter();
-            return binaryFormatter.SerializeByteArray(graph);
+            try
+            {
+                var binaryFormatter = GetFormatter();
+                return binaryFormatter.SerializeByteArray(graph);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"二进制序列化对象失败，类型: {typeof(T).FullName}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -71,8 +80,16 @@ namespace DotNettyCoreRemoting.Serialization.Binary
         /// <returns>Serialized data</returns>
         public byte[] Serialize(Type type, object graph)
         {
-            var binaryFormatter = GetFormatter();
-            return binaryFormatter.SerializeByteArray(graph);
+            try
+            {
+                var binaryFormatter = GetFormatter();
+                return binaryFormatter.SerializeByteArray(graph);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"二进制序列化对象失败，类型: {type?.FullName ?? "未知"}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -83,8 +100,16 @@ namespace DotNettyCoreRemoting.Serialization.Binary
         /// <returns>Deserialized object graph</returns>
         public T Deserialize<T>(byte[] rawData)
         {
-            var binaryFormatter = GetFormatter();
-            return (T)binaryFormatter.DeserializeSafe(rawData);
+            try
+            {
+                var binaryFormatter = GetFormatter();
+                return (T)binaryFormatter.DeserializeSafe(rawData);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"二进制反序列化对象失败，目标类型: {typeof(T).FullName}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -95,8 +120,16 @@ namespace DotNettyCoreRemoting.Serialization.Binary
         /// <returns>Deserialized object graph</returns>
         public object Deserialize(Type type, byte[] rawData)
         {
-            var binaryFormatter = GetFormatter();
-            return binaryFormatter.DeserializeSafe(rawData);
+            try
+            {
+                var binaryFormatter = GetFormatter();
+                return binaryFormatter.DeserializeSafe(rawData);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"二进制反序列化对象失败，目标类型: {type?.FullName ?? "未知"}", ex);
+                throw;
+            }
         }
         
         /// <summary>

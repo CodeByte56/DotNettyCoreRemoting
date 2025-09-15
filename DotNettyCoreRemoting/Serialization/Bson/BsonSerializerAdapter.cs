@@ -7,6 +7,7 @@ using CoreRemoting.Serialization.Bson.Converters.DataSetDiffGramSupport;
 using DotNettyCoreRemoting.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using DotNettyCoreRemoting.Logging;
 
 namespace CoreRemoting.Serialization.Bson
 {
@@ -81,7 +82,15 @@ namespace CoreRemoting.Serialization.Bson
         /// <returns>Serialized data</returns>
         public byte[] Serialize<T>(T graph)
         {
-            return Serialize(typeof(T), graph);
+            try
+            {
+                return Serialize(typeof(T), graph);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"BSON序列化对象失败，类型: {typeof(T).FullName}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -92,13 +101,21 @@ namespace CoreRemoting.Serialization.Bson
         /// <returns>Serialized data</returns>
         public byte[] Serialize(Type type, object graph)
         {
-            var envelope = new Envelope(graph);
-            
-            using var stream = new MemoryStream();
-            using var writer = new BsonDataWriter(stream);
-            _serializer.Serialize(writer, envelope);
+            try
+            {
+                var envelope = new Envelope(graph);
+                
+                using var stream = new MemoryStream();
+                using var writer = new BsonDataWriter(stream);
+                _serializer.Serialize(writer, envelope);
 
-            return stream.ToArray();
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"BSON序列化对象失败，类型: {type?.FullName ?? "未知"}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -109,7 +126,15 @@ namespace CoreRemoting.Serialization.Bson
         /// <returns>Deserialized object graph</returns>
         public T Deserialize<T>(byte[] rawData)
         {
-            return (T)Deserialize(typeof(T), rawData);
+            try
+            {
+                return (T)Deserialize(typeof(T), rawData);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"BSON反序列化对象失败，目标类型: {typeof(T).FullName}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -120,17 +145,25 @@ namespace CoreRemoting.Serialization.Bson
         /// <returns>Deserialized object graph</returns>
         public object Deserialize(Type type, byte[] rawData)
         {
-            using var stream = new MemoryStream(rawData);
-            using var reader = new BsonDataReader(stream);
-            var envelope = _serializer.Deserialize<Envelope>(reader);
+            try
+            {
+                using var stream = new MemoryStream(rawData);
+                using var reader = new BsonDataReader(stream);
+                var envelope = _serializer.Deserialize<Envelope>(reader);
 
-            var bsonValue = envelope?.Value;
-            object value = null;
-            
-            if (bsonValue != null)
-                value = Convert.ChangeType(bsonValue, envelope.Type);
+                var bsonValue = envelope?.Value;
+                object value = null;
+                
+                if (bsonValue != null)
+                    value = Convert.ChangeType(bsonValue, envelope.Type);
 
-            return value;
+                return value;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"BSON反序列化对象失败，目标类型: {type?.FullName ?? "未知"}", ex);
+                throw;
+            }
         }
 
         /// <summary>

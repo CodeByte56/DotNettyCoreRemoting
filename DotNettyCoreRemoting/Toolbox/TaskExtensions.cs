@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
+using DotNettyCoreRemoting.Logging;
 
 namespace DotNettyCoreRemoting.Toolbox;
 
@@ -15,7 +16,7 @@ public static class TaskExtensions
     /// Throws a <see cref="TimeoutException"/> if failed.
     /// </summary>
     public static Task<T> Timeout<T>(this Task<T> task, double secTimeout, string message = TimedOut) =>
-        task.Timeout(secTimeout, () => throw new TimeoutException(message));
+        task.Timeout(secTimeout, () => { Logger.Error(typeof(TaskExtensions), $"任务超时: {message}"); throw new TimeoutException(message); });
 
     /// <summary>
     /// Ensures that the given task is executed within the specified timeout.
@@ -40,7 +41,7 @@ public static class TaskExtensions
     /// Throws a <see cref="TimeoutException"/> if failed.
     /// </summary>
     public static Task Timeout(this Task task, double secTimeout, string message = TimedOut) =>
-        task.Timeout(secTimeout, () => throw new TimeoutException(message));
+        task.Timeout(secTimeout, () => { Logger.Error(typeof(TaskExtensions), $"任务超时: {message}"); throw new TimeoutException(message); });
 
     /// <summary>
     /// Ensures that the given task is executed within the specified timeout.

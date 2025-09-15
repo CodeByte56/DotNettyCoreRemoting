@@ -1,4 +1,5 @@
-﻿using DotNettyCoreRemoting.RemoteDelegates;
+﻿using DotNettyCoreRemoting.Logging;
+using DotNettyCoreRemoting.RemoteDelegates;
 using DotNettyCoreRemoting.RpcMessaging;
 using DotNettyCoreRemoting.Serialization;
 using DotNettyCoreRemoting.Serialization.Binary;
@@ -78,8 +79,18 @@ namespace DotNettyCoreRemoting
 
         internal RemotingProxyBuilder ProxyBuilder { get; set; }
 
-        public T CreateProxy<T>(string serviceName = "") =>
-               ProxyBuilder.CreateProxy<T>(this, serviceName, _config.timeout);
+        public T CreateProxy<T>(string serviceName = "")
+        {
+            try
+            {
+                return ProxyBuilder.CreateProxy<T>(this, serviceName, _config.timeout);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(typeof(DotNettyRPCClient), $"创建代理失败: {typeof(T).Name}, 服务名: {serviceName}", ex);
+                throw;
+            }
+        }
 
     }
 }

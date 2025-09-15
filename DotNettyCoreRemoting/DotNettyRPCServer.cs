@@ -7,6 +7,7 @@ using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using DotNettyCoreRemoting.DependencyInjection;
 using DotNettyCoreRemoting.Handler;
+using DotNettyCoreRemoting.Logging;
 using DotNettyCoreRemoting.RemoteDelegates;
 using DotNettyCoreRemoting.RpcMessaging;
 using DotNettyCoreRemoting.Serialization;
@@ -120,7 +121,18 @@ namespace DotNettyCoreRemoting
         /// </summary>
         public void Start()
         {
-            _serverChannel = _serverBootstrap.BindAsync(_hostName, _port).Result;
+            try
+            {
+                _serverChannel = _serverBootstrap.BindAsync(_hostName, _port).Result;
+
+                Logger.Info(typeof(DotNettyRPCServer), $"RPC服务器启动成功 - 主机: {_hostName}, 端口: {_port}");
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(typeof(DotNettyRPCServer), $"RPC服务器启动失败 - 主机: {_hostName}, 端口: {_port}", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -128,7 +140,15 @@ namespace DotNettyCoreRemoting
         /// </summary>
         public void Stop()
         {
-            _serverChannel.CloseAsync();
+            try
+            {
+                _serverChannel.CloseAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(typeof(DotNettyRPCServer), "RPC服务器停止失败", ex);
+                throw;
+            }
         }
 
         #endregion

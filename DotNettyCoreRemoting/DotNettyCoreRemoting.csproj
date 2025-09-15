@@ -10,7 +10,7 @@
 		<Copyright>H</Copyright>
 		<PackageTags>Remoting RPC Network</PackageTags>
 		<Company>无</Company>
-		<PackageVersion>1.2.2.2</PackageVersion>
+		<PackageVersion>1.2.2.3</PackageVersion>
 		<PackageProjectUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -62,6 +62,7 @@
 		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 		<PackageReference Include="System.Security.Cryptography.OpenSsl" Version="5.0.0" />
 		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
 		<PackageReference Include="Castle.Windsor" Version="6.0.0" />
@@ -81,6 +82,7 @@
 		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
 		<PackageReference Include="System.Security.Cryptography.OpenSsl" Version="5.0.0" />
 		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
 		<!-- 注意：Newtonsoft.Json.Bson 依赖于 Newtonsoft.Json，已包含 -->
 	</ItemGroup>
 	<!--<ItemGroup>

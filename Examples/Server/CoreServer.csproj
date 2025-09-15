@@ -9,10 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DotNettyCoreRemoting" Version="1.2.2.2" />
-	</ItemGroup>
-
-	<ItemGroup>
+	  <ProjectReference Include="..\..\DotNettyCoreRemoting\DotNettyCoreRemoting.csproj" />
 	  <ProjectReference Include="..\shared\shared.csproj" />
 	</ItemGroup>
 

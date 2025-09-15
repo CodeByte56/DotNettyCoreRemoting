@@ -1,8 +1,9 @@
-﻿using Castle.DynamicProxy;
+using Castle.DynamicProxy;
 using CoreRemoting.Serialization.Bson;
 using DotNetty.Buffers;
 using DotNettyCoreRemoting.RemoteDelegates;
 using DotNettyCoreRemoting.RpcMessaging;
+using DotNettyCoreRemoting.Logging;
 using DotNettyCoreRemoting.Serialization;
 using DotNettyCoreRemoting.Util;
 using Serialize.Linq.Extensions;
@@ -214,6 +215,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
+                Logger.Error($"调用远程服务{_serviceName}的方法{method.Name}时发生错误", ex);
                 throw;
             }
             finally
@@ -279,7 +281,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-
+                Logger.Error($"异步调用远程服务{_serviceName}的方法{method.Name}时发生错误", ex);
                 throw;
             }
         }

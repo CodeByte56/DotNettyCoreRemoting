@@ -2,6 +2,7 @@
 using DotNetty.Transport.Channels;
 using DotNettyCoreRemoting;
 using DotNettyCoreRemoting.Handler;
+using DotNettyCoreRemoting.Logging;
 using System;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,20 +30,20 @@ namespace Coldairarrow.DotNettyCoreRemoting
             }
             else
             {
-                Console.WriteLine($"[Client] 收到未知类型: {message?.GetType().Name}");
+                Logger.Error(typeof(ClientHandler), $"收到未知类型的消息: {message?.GetType().Name}");
             }
         }
 
 
         public override void ChannelInactive(IChannelHandlerContext context)
         {
-            Console.WriteLine($"[Client] 连接断开: {context.Channel.RemoteAddress}");
+            Logger.Error(typeof(ClientHandler), $"客户端连接断开: {context.Channel.RemoteAddress}");
             base.ChannelInactive(context);
         }
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            Console.WriteLine($"[Client] 异常: {exception}");
+            Logger.Error(typeof(ClientHandler), $"客户端异常 - 远程地址: {context.Channel.RemoteAddress}", exception);
             context.CloseAsync();
         }
     }

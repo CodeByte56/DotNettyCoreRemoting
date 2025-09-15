@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DotNettyCoreRemoting.Logging;
 
 namespace DotNettyCoreRemoting.DependencyInjection
 {
@@ -41,7 +42,10 @@ namespace DotNettyCoreRemoting.DependencyInjection
         public ServiceRegistration GetServiceRegistration(string serviceName)
         {
             if (!_serviceNameRegistry.TryGetValue(serviceName, out ServiceRegistration registration))
+            {
+                Logger.Error($"获取服务注册信息失败：找不到名为 '{serviceName}' 的服务");
                 throw new KeyNotFoundException($"No service named '{serviceName}' is registered.");
+            }
 
             return registration;
         }

@@ -1,5 +1,6 @@
 ﻿using CoreRemoting.RemoteDelegates;
 using DotNettyCoreRemoting.DependencyInjection;
+using DotNettyCoreRemoting.Logging;
 using DotNettyCoreRemoting.RemoteDelegates;
 using DotNettyCoreRemoting.RpcMessaging;
 using DotNettyCoreRemoting.Serialization;
@@ -117,8 +118,8 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"异常发生: {ex.Message}");
                 var actualEx = ex is TargetInvocationException tie ? tie.InnerException ?? ex : ex;
+                Logger.Error(typeof(RemoteMethod), $"远程方法调用异常 - 服务名: {callMessage?.ServiceName ?? "未知"}, 方法名: {callMessage?.MethodName ?? "未知"}", actualEx);
                 clientRpcContext.Error = true;
                 clientRpcContext.ErrorMessage = ExceptionHelper.GetExceptionAllMsg(actualEx);
             }
