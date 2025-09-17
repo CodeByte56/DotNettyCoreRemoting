@@ -1,0 +1,102 @@
+name: Publish NuGet Package and GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 仅当打标签如 v1.0.0, v1.2.3-beta.1 时触发
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+     # ✅ 新增：必须添加权限，否则无法创建 Release
+    permissions:
+      contents: write  # 允许创建/更新 GitHub Release
+      # packages: read # 如果使用包注册表可开启
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Extract Version
+        id: version
+        run: |
+          # 去掉 'v' 前缀
+          TAG_NAME='${{ github.ref_name }}'
+          VERSION_NO_V=$(echo "$TAG_NAME" | sed 's/^v//')
+          
+          # 提取主版本和次版本，用于 AssemblyVersion
+          # 例如: 5.9-beta.3 -> 5.9
+          BASE_VERSION=$(echo "$VERSION_NO_V" | cut -d'-' -f1)
+          MAJOR_MINOR=$(echo "$BASE_VERSION" | cut -d'.' -f1,2)
+          
+          # 构造纯数字 AssemblyVersion (x.x.0.0)
+          ASSEMBLY_VERSION="${MAJOR_MINOR}.0.0"
+          
+          echo "package_version=$VERSION_NO_V" >> $GITHUB_OUTPUT
+          echo "assembly_version=$ASSEMBLY_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "✅ Extracted PackageVersion: $VERSION_NO_V"
+          echo "✅ Extracted AssemblyVersion:  $ASSEMBLY_VERSION"
+
+      # ✅ 移除了单独的 Build 步骤，Pack 会自动构建
+
+      - name: Pack NuGet Package
+        run: |
+          dotnet pack DotNettyCoreRemoting/DotNettyCoreRemoting.csproj \
+            --configuration Release \
+            --no-restore \
+            --include-symbols \
+            -p:PackageId=DotNettyCoreRemoting \
+            -p:PackageVersion=${{ steps.version.outputs.package_version }} \
+            -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }} \
+            -p:FileVersion=${{ steps.version.outputs.assembly_version }} \
+            -p:InformationalVersion=${{ steps.version.outputs.package_version }} \
+            -p:RepositoryUrl=${{ github.repositoryUrl }} \
+            -p:SymbolPackageFormat=snupkg \
+            -o ./artifacts
+
+      # ✅ 新增：创建 GitHub Release 并上传打包文件
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        # 确保只在 tag 时运行
+        if: startsWith(github.ref, 'refs/tags/')  
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            This release includes:
+            - NuGet package for testing
+            - Symbols package for debugging
+
+            Package ID: `DotNettyCoreRemoting`
+            Version: `${{ steps.version.outputs.package_version }}`
+
+            ⚠️ This is a **test package**, not the official release.
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.package_version, 'beta') || contains(steps.version.outputs.package_version, 'rc') || contains(steps.version.outputs.package_version, 'alpha') }}
+          files: |
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ✅ 可选：发布到 NuGet.org（目前是测试包，可注释）
+      - name: Publish to NuGet.org
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+      
+          dotnet nuget push ./artifacts/*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

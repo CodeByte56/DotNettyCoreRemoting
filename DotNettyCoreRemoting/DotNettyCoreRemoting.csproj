@@ -1,0 +1,108 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Title>DotNettyCoreRemoting</Title>
+		<Authors>Jmeory</Authors>
+		<Description>Easy to use DotNettyRPC Remoting library for .NET Core and .NET Framework</Description>
+		<Copyright>H</Copyright>
+		<PackageTags>Remoting RPC Network</PackageTags>
+		<Company>无</Company>
+		<PackageVersion>1.2.2.3</PackageVersion>
+		<PackageProjectUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/CodeByte56/DotNettyCoreRemoting.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<!-- 包含源码和符号（用于调试） -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PackageReleaseNotes>
+			Easy to use Remoting library for .NET Core and .NET Framework
+		</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<NoWarn>$(NoWarn),NU1701,NU1903</NoWarn>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DocumentationFile>bin\Debug\DotNettyCoreRemoting.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+		<DocumentationFile>bin\Release\DotNettyCoreRemoting.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+
+	<!-- 为 netstandard2.0 显式列出所有依赖 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Castle.Windsor" Version="6.0.0" />
+		<PackageReference Include="DotNetty.Codecs" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Common" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Transport" Version="0.7.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3" />
+		<PackageReference Include="Serialize.Linq" Version="4.0.167" />
+		<PackageReference Include="stakx.DynamicProxy.AsyncInterceptor" Version="0.1.0" />
+		<PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.2" />
+		<PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+		<PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
+		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+		<PackageReference Include="System.Security.Cryptography.OpenSsl" Version="5.0.0" />
+		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<PackageReference Include="Castle.Windsor" Version="6.0.0" />
+		<PackageReference Include="DotNetty.Codecs" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Common" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Transport" Version="0.7.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3" />
+		<PackageReference Include="Serialize.Linq" Version="4.0.167" />
+		<PackageReference Include="stakx.DynamicProxy.AsyncInterceptor" Version="0.1.0" />
+		<PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.2" />
+		<PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+		<PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
+		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+		<PackageReference Include="System.Security.Cryptography.OpenSsl" Version="5.0.0" />
+		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+		<!-- 注意：Newtonsoft.Json.Bson 依赖于 Newtonsoft.Json，已包含 -->
+	</ItemGroup>
+	<!--<ItemGroup>
+		<PackageReference Include="Castle.Windsor" Version="6.0.0" />
+		<PackageReference Include="DotNetty.Codecs" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Common" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
+		<PackageReference Include="DotNetty.Transport" Version="0.7.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3" />
+		<PackageReference Include="Serialize.Linq" Version="4.0.167" />
+		<PackageReference Include="stakx.DynamicProxy.AsyncInterceptor" Version="0.1.0" />
+		<PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.2" />
+		<PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+		<PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
+		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+		<PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
+		<PackageReference Include="System.Security.Cryptography.OpenSsl" Version="5.0.0" />
+		<PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+	</ItemGroup>-->
+
+</Project>
