@@ -1,12 +1,12 @@
 # DotNettyCoreRemoting
 
-## 项目介绍 (Project Introduction)
+[查看英文版本](README_EN.md)
+
+## 项目介绍
 
 DotNettyCoreRemoting 是一个基于 [DotNetty](https://github.com/Azure/DotNetty) 网络框架实现的高性能、轻量级远程过程调用 (RPC) 库，支持 .NET Core 和 .NET Framework 平台。
 
-DotNettyCoreRemoting is a high-performance, lightweight Remote Procedure Call (RPC) library based on the DotNetty networking framework, supporting both .NET Core and .NET Framework platforms.
-
-## 特性 (Features)
+## 特性
 
 - 🔄 **跨平台兼容** - 同时支持 .NET Core 和 .NET Framework
 - ⚡ **高性能** - 基于 DotNetty 实现的高效网络通信
@@ -17,22 +17,11 @@ DotNettyCoreRemoting is a high-performance, lightweight Remote Procedure Call (R
 - ⏱️ **超时控制** - 提供灵活的超时设置
 - 📦 **复杂对象传输** - 支持 DataTable 等复杂对象的序列化和传输
 
-- 🔄 **Cross-platform compatibility** - Supports both .NET Core and .NET Framework
-- ⚡ **High performance** - Efficient network communication based on DotNetty
-- 🛠️ **Simple and easy to use** - Provides a clean API that's easy to integrate and use
-- 🧩 **Dependency injection support** - Built-in adapters for multiple DI containers
-- 🔍 **Multiple serialization methods** - Supports binary and Bson serialization
-- 🔄 **Generic support** - Full support for generic method calls
-- ⏱️ **Timeout control** - Provides flexible timeout settings
-- 📦 **Complex object transmission** - Supports serialization and transmission of complex objects like DataTable
+## 快速开始
 
-## 快速开始 (Quick Start)
-
-### 安装 (Installation)
+### 安装
 
 使用 NuGet 包管理器安装 DotNettyCoreRemoting：
-
-Install DotNettyCoreRemoting using NuGet Package Manager:
 
 ```powershell
 Install-Package DotNettyCoreRemoting
@@ -40,15 +29,13 @@ Install-Package DotNettyCoreRemoting
 
 或者使用 .NET CLI：
 
-Or using .NET CLI:
-
 ```powershell
 dotnet add package DotNettyCoreRemoting
 ```
 
-### 服务端示例 (Server Example)
+### 服务端示例
 
-1. 定义服务接口 (Define service interface):
+1. 定义服务接口:
 
 ```csharp
 public interface IMyFirstServer
@@ -58,7 +45,7 @@ public interface IMyFirstServer
 }
 ```
 
-2. 实现服务接口 (Implement service interface):
+2. 实现服务接口:
 
 ```csharp
 public class MyFirstServer : IMyFirstServer
@@ -75,13 +62,13 @@ public class MyFirstServer : IMyFirstServer
 }
 ```
 
-3. 启动 RPC 服务器 (Start RPC server):
+3. 启动 RPC 服务器:
 
 ```csharp
 // 创建服务器
 var server = new DotNettyRPCServer(new ServerConfig
 {
-    HostName = "127.0.0.1",
+    HostName = "127.0.0.1",  // 在生产环境中，仅当您打算接受来自多个网络接口的连接时才绑定到0.0.0.0，并始终通过防火墙、网络策略或应用级控制来限制访问。
     NetworkPort = 9095,
     RreistContainer = container =>
     {
@@ -100,7 +87,7 @@ Console.ReadKey();
 server.Stop();
 ```
 
-### 客户端示例 (Client Example)
+### 客户端示例
 
 ```csharp
 // 创建客户端连接到服务器
@@ -123,9 +110,9 @@ var result = service.SayHelloT("Generic method test");
 Console.WriteLine($"调用结果: {result}");
 ```
 
-## 配置选项 (Configuration Options)
+## 配置选项
 
-### 服务端配置 (Server Configuration)
+### 服务端配置
 
 ```csharp
 var serverConfig = new ServerConfig
@@ -150,7 +137,7 @@ var serverConfig = new ServerConfig
 };
 ```
 
-### 客户端配置 (Client Configuration)
+### 客户端配置
 
 ```csharp
 var clientConfig = new ClientConfig
@@ -169,27 +156,22 @@ var clientConfig = new ClientConfig
 };
 ```
 
-## 高级特性 (Advanced Features)
+## 高级特性
 
-### 自定义序列化器 (Custom Serializer)
+### 自定义序列化器
 
 您可以实现 `ISerializerAdapter` 接口来创建自定义序列化器：
-
-You can implement the `ISerializerAdapter` interface to create custom serializers:
 
 ```csharp
 public class CustomSerializer : ISerializerAdapter
 {
     // 实现序列化和反序列化方法
-    // Implement serialization and deserialization methods
 }
 ```
 
-### 使用不同的依赖注入容器 (Using Different DI Containers)
+### 使用不同的依赖注入容器
 
 DotNettyCoreRemoting 支持多种依赖注入容器：
-
-DotNettyCoreRemoting supports multiple dependency injection containers:
 
 ```csharp
 // Castle Windsor (默认)
@@ -205,7 +187,7 @@ var server = new DotNettyRPCServer(new ServerConfig
 });
 ```
 
-## 项目结构 (Project Structure)
+## 项目结构
 
 ```
 DotNettyCoreRemoting/
@@ -218,36 +200,24 @@ DotNettyCoreRemoting/
 └── DotNettyRPCClient.cs  # RPC客户端实现
 ```
 
-## 常见问题 (FAQ)
+## 常见问题
 
-### 连接问题 (Connection Issues)
+### 连接问题
 
 - 确保服务器已启动并监听正确的端口
 - 检查防火墙设置是否阻止了连接
 - 验证客户端配置的服务器地址和端口是否正确
 
-- Make sure the server is running and listening on the correct port
-- Check if firewall settings are blocking the connection
-- Verify that the client is configured with the correct server address and port
-
-### 序列化问题 (Serialization Issues)
+### 序列化问题
 
 - 确保传输的对象是可序列化的
 - 对于复杂对象，可能需要自定义序列化逻辑
 - 对于泛型类型，确保所有泛型参数都是可序列化的
 
-- Ensure that the objects being transferred are serializable
-- For complex objects, custom serialization logic may be required
-- For generic types, ensure all generic parameters are serializable
-
-## 开源协议 (License)
+## 开源协议
 
 该项目使用 MIT 许可证。
 
-This project is licensed under the MIT License.
-
-## 贡献 (Contributing)
+## 贡献
 
 欢迎提交问题和拉取请求来帮助改进这个项目。
-
-Contributions are welcome! Please submit issues and pull requests to help improve this project.
