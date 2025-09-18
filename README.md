@@ -1,6 +1,7 @@
 # DotNettyCoreRemoting
 
-[View Chinese Version](README_CN.md)
+## Language
+[View Chinese Version](README.zh-CN.md)
 
 ## Project Introduction
 
