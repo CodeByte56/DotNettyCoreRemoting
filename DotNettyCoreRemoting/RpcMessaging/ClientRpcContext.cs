@@ -5,18 +5,12 @@ using System.Text;
 namespace DotNettyCoreRemoting.RpcMessaging
 {
     [Serializable]
-    public class ClientRpcContext : ClientRpcContextEntry
+    public class ClientRpcContext
     {
         /// <summary>
         /// Gets or sets the result message, that was received from server after the call was invoked on server side.
         /// </summary>
         public MethodCallResultMessage ResultMessage { get; set; }
-
-    }
-
-    [Serializable]
-    public class ClientRpcContextEntry
-    {
 
         /// <summary>
         /// Gets or sets whether this RPC call is in error state.
