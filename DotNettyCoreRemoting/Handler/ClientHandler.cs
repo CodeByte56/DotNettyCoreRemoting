@@ -3,6 +3,10 @@ using DotNetty.Transport.Channels;
 using DotNettyCoreRemoting;
 using DotNettyCoreRemoting.Handler;
 using DotNettyCoreRemoting.Logging;
+using DotNettyCoreRemoting.RpcMessaging;
+using DotNettyCoreRemoting.Serialization;
+using DotNettyCoreRemoting.Serialization.Binary;
+using Serialize.Linq.Interfaces;
 using System;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +30,7 @@ namespace Coldairarrow.DotNettyCoreRemoting
                 res.Release(); // ✅ 释放 buffer
 
                 // ✅ 异步处理，避免阻塞 EventLoop
-                _ = Task.Run(() => { _clientWait.Set(context.Channel.Id.AsShortText(), responseBytes); });
+                _ = Task.Run(() => { _clientWait.Set(context.Channel.Id.AsLongText(), responseBytes); });
             }
             else
             {
@@ -43,7 +47,7 @@ namespace Coldairarrow.DotNettyCoreRemoting
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            Logger.Error(typeof(ClientHandler), $"客户端异常 - 远程地址: {context.Channel.RemoteAddress}", exception);
+            Logger.Error(typeof(ClientHandler), exception, $"客户端异常 - 远程地址: {context.Channel.RemoteAddress}");
             context.CloseAsync();
         }
     }

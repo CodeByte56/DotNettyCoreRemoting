@@ -58,6 +58,7 @@ namespace DotNettyCoreRemoting
         {
 
             ClientRpcContext clientRpcContext = new ClientRpcContext();
+
             try
             {
 
@@ -119,7 +120,7 @@ namespace DotNettyCoreRemoting
             catch (Exception ex)
             {
                 var actualEx = ex is TargetInvocationException tie ? tie.InnerException ?? ex : ex;
-                Logger.Error(typeof(RemoteMethod), $"远程方法调用异常 - 服务名: {callMessage?.ServiceName ?? "未知"}, 方法名: {callMessage?.MethodName ?? "未知"}", actualEx);
+                Logger.Error(typeof(RemoteMethod), actualEx, $"远程方法调用异常 - 服务名: {callMessage?.ServiceName ?? "未知"}, 方法名: {callMessage?.MethodName ?? "未知"}");
                 clientRpcContext.Error = true;
                 clientRpcContext.ErrorMessage = ExceptionHelper.GetExceptionAllMsg(actualEx);
             }

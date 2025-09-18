@@ -18,5 +18,7 @@ namespace DotNettyCoreRemoting
 
         public ISerializerAdapter Serializer { get; set; }
 
+        public Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory { get; set; }
+
     }
 }

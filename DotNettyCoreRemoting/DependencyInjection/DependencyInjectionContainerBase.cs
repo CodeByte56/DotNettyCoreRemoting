@@ -43,7 +43,7 @@ namespace DotNettyCoreRemoting.DependencyInjection
         {
             if (!_serviceNameRegistry.TryGetValue(serviceName, out ServiceRegistration registration))
             {
-                Logger.Error($"获取服务注册信息失败：找不到名为 '{serviceName}' 的服务");
+                Logger.Error($"No service named '{serviceName}' is registered.");
                 throw new KeyNotFoundException($"No service named '{serviceName}' is registered.");
             }
 

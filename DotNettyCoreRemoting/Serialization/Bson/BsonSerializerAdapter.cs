@@ -69,11 +69,11 @@ namespace CoreRemoting.Serialization.Bson
             }
 
             settings.Converters = converters;
-            
+
             _serializer = JsonSerializer.Create(settings);
             CurrentSettings = settings;
         }
-        
+
         /// <summary>
         /// Serializes an object graph.
         /// </summary>
@@ -88,7 +88,7 @@ namespace CoreRemoting.Serialization.Bson
             }
             catch (Exception ex)
             {
-                Logger.Error($"BSON序列化对象失败，类型: {typeof(T).FullName}", ex);
+                Logger.Error(typeof(BsonSerializerAdapter), ex, $"BSON序列化对象失败，类型: {typeof(T).FullName}");
                 throw;
             }
         }
@@ -104,7 +104,7 @@ namespace CoreRemoting.Serialization.Bson
             try
             {
                 var envelope = new Envelope(graph);
-                
+
                 using var stream = new MemoryStream();
                 using var writer = new BsonDataWriter(stream);
                 _serializer.Serialize(writer, envelope);
@@ -113,7 +113,7 @@ namespace CoreRemoting.Serialization.Bson
             }
             catch (Exception ex)
             {
-                Logger.Error($"BSON序列化对象失败，类型: {type?.FullName ?? "未知"}", ex);
+                Logger.Error(typeof(BsonSerializerAdapter), ex, $"BSON序列化对象失败，类型: {type?.FullName ?? "未知"}");
                 throw;
             }
         }
@@ -132,7 +132,7 @@ namespace CoreRemoting.Serialization.Bson
             }
             catch (Exception ex)
             {
-                Logger.Error($"BSON反序列化对象失败，目标类型: {typeof(T).FullName}", ex);
+                Logger.Error(typeof(BsonSerializerAdapter), ex, $"BSON反序列化对象失败，目标类型: {typeof(T).FullName}");
                 throw;
             }
         }
@@ -153,7 +153,7 @@ namespace CoreRemoting.Serialization.Bson
 
                 var bsonValue = envelope?.Value;
                 object value = null;
-                
+
                 if (bsonValue != null)
                     value = Convert.ChangeType(bsonValue, envelope.Type);
 
@@ -161,7 +161,7 @@ namespace CoreRemoting.Serialization.Bson
             }
             catch (Exception ex)
             {
-                Logger.Error($"BSON反序列化对象失败，目标类型: {type?.FullName ?? "未知"}", ex);
+                Logger.Error(typeof(BsonSerializerAdapter), ex, $"BSON反序列化对象失败，目标类型: {type?.FullName ?? "未知"}");
                 throw;
             }
         }

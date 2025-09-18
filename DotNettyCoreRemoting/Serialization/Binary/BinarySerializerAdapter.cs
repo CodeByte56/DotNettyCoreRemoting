@@ -10,10 +10,10 @@ namespace DotNettyCoreRemoting.Serialization.Binary
     /// </summary>
     public class BinarySerializerAdapter : ISerializerAdapter
     {
-        [ThreadStatic] 
+        [ThreadStatic]
         private static BinaryFormatter _formatter;
         private readonly BinarySerializerConfig _config;
-       
+
         /// <summary>
         /// Creates a new instance of the BinarySerializerAdapter class.
         /// </summary>
@@ -42,9 +42,9 @@ namespace DotNettyCoreRemoting.Serialization.Binary
                 {
                     _formatter.TypeFormat = _config.TypeFormat;
                     _formatter.FilterLevel = _config.FilterLevel;
-                    _formatter.AssemblyFormat = 
-                        _config.SerializeAssemblyVersions 
-                            ? System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Full 
+                    _formatter.AssemblyFormat =
+                        _config.SerializeAssemblyVersions
+                            ? System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Full
                             : System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
                 }
             }
@@ -67,7 +67,7 @@ namespace DotNettyCoreRemoting.Serialization.Binary
             }
             catch (Exception ex)
             {
-                Logger.Error($"二进制序列化对象失败，类型: {typeof(T).FullName}", ex);
+                Logger.Error(typeof(BinarySerializerAdapter), ex, $"二进制序列化对象失败，类型: {typeof(T).FullName}");
                 throw;
             }
         }
@@ -87,7 +87,7 @@ namespace DotNettyCoreRemoting.Serialization.Binary
             }
             catch (Exception ex)
             {
-                Logger.Error($"二进制序列化对象失败，类型: {type?.FullName ?? "未知"}", ex);
+                Logger.Error(typeof(BinarySerializerAdapter), ex, $"二进制序列化对象失败，类型: {type?.FullName ?? "未知"}");
                 throw;
             }
         }
@@ -107,7 +107,7 @@ namespace DotNettyCoreRemoting.Serialization.Binary
             }
             catch (Exception ex)
             {
-                Logger.Error($"二进制反序列化对象失败，目标类型: {typeof(T).FullName}", ex);
+                Logger.Error(typeof(BinarySerializerAdapter), ex, $"二进制反序列化对象失败，目标类型: {typeof(T).FullName}");
                 throw;
             }
         }
@@ -127,11 +127,11 @@ namespace DotNettyCoreRemoting.Serialization.Binary
             }
             catch (Exception ex)
             {
-                Logger.Error($"二进制反序列化对象失败，目标类型: {type?.FullName ?? "未知"}", ex);
+                Logger.Error(typeof(BinarySerializerAdapter), ex, $"二进制反序列化对象失败，目标类型: {type?.FullName ?? "未知"}");
                 throw;
             }
         }
-        
+
         /// <summary>
         /// Gets whether parameter values must be put in an envelope object for proper deserialization, or not. 
         /// </summary>

@@ -85,6 +85,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
 		<!-- 注意：Newtonsoft.Json.Bson 依赖于 Newtonsoft.Json，已包含 -->
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Logging\" />
+	</ItemGroup>
 	<!--<ItemGroup>
 		<PackageReference Include="Castle.Windsor" Version="6.0.0" />
 		<PackageReference Include="DotNetty.Codecs" Version="0.7.6" />

@@ -26,7 +26,7 @@ namespace DotNettyCoreRemoting.Util
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(AsyncHelper), "异步转同步执行失败", ex);
+                Logger.Error(typeof(AsyncHelper), ex, "异步转同步执行失败");
                 throw;
             }
         }
@@ -45,7 +45,7 @@ namespace DotNettyCoreRemoting.Util
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(AsyncHelper), "异步转同步执行失败(带返回值)", ex);
+                Logger.Error(typeof(AsyncHelper), ex, "异步转同步执行失败(带返回值)");
                 throw;
             }
         }

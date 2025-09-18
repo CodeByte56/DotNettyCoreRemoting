@@ -87,7 +87,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(DotNettyRPCClient), $"创建代理失败: {typeof(T).Name}, 服务名: {serviceName}", ex);
+                Logger.Error(typeof(DotNettyRPCClient), ex, $"创建代理失败: {typeof(T).Name}, 服务名: {serviceName}");
                 throw;
             }
         }

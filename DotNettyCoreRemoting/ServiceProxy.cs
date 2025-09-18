@@ -18,6 +18,10 @@ using System.Threading.Tasks;
 
 namespace DotNettyCoreRemoting
 {
+
+    public class ServiceProxy { }
+
+
     public class ServiceProxy<TServiceInterface> : AsyncInterceptor
     {
         private DotNettyRPCClient _client;
@@ -151,7 +155,7 @@ namespace DotNettyCoreRemoting
             try
             {
 
-                var waitKey = client.Id.AsShortText();
+                var waitKey = client.Id.AsLongText();
                 DotNettyClientManager._clientWait.Start(waitKey);
 
                 var sendBuffer = Unpooled.WrappedBuffer(_client.Serializer.Serialize(remoteMethodCallMessage));
@@ -215,7 +219,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-                Logger.Error($"调用远程服务{_serviceName}的方法{method.Name}时发生错误", ex);
+                Logger.Error(typeof(ServiceProxy), ex, $"调用远程服务{_serviceName}的方法{method.Name}时发生错误");
                 throw;
             }
             finally
@@ -246,7 +250,7 @@ namespace DotNettyCoreRemoting
             try
             {
 
-                var waitKey = client.Id.AsShortText();
+                var waitKey = client.Id.AsLongText();
                 DotNettyClientManager._clientWait.Start(waitKey);
 
                 var sendBuffer = Unpooled.WrappedBuffer(_client.Serializer.Serialize(remoteMethodCallMessage));

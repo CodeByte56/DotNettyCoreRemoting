@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DotNettyCoreRemoting.Serialization.Binary
 {
+    using DotNettyCoreRemoting.Logging;
     using System;
     using System.Data;
     using System.IO;
@@ -112,6 +113,7 @@ namespace DotNettyCoreRemoting.Serialization.Binary
                     continue;
                 }
 
+                Logger.Error(typeof(DataSetSurrogate), "Serialized DataSet probably includes malicious data.");
                 // the deserialized data doesn't appear to be a data table
                 throw new UnsafeDeserializationException("Serialized DataSet probably includes malicious data.");
             }

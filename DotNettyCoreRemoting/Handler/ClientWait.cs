@@ -44,7 +44,7 @@ namespace DotNettyCoreRemoting.Handler
 
             if (!_waits.TryGetValue(id, out var clientObj))
             {
-                Logger.Error($"等待键 '{id}' 不存在，可能已超时或被提前清理。");
+                Logger.Error(typeof(ClientWait),$"等待键 '{id}' 不存在，可能已超时或被提前清理。");
                 throw new KeyNotFoundException($"等待键 '{id}' 不存在，可能已超时或被提前清理。");
             }
 
@@ -57,7 +57,7 @@ namespace DotNettyCoreRemoting.Handler
             {
                 // ⏳ 超时了，清理资源
                 _waits.TryRemove(id, out _);
-                Logger.Error($"等待服务端响应超时。等待键: {id}，超时时间: {timeout?.TotalSeconds} 秒。");
+                Logger.Error(typeof(ClientWait),$"等待服务端响应超时。等待键: {id}，超时时间: {timeout?.TotalSeconds} 秒。");
                 throw new TimeoutException($"等待服务端响应超时。等待键: {id}，超时时间: {timeout?.TotalSeconds} 秒。");
             }
 

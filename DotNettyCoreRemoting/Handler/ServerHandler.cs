@@ -50,7 +50,7 @@ namespace DotNettyCoreRemoting.Handler
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(ServerHandler), "处理客户端请求时发生错误", ex);
+                Logger.Error(typeof(ServerHandler), ex, "处理客户端请求时发生错误");
                 var resultContext = new ClientRpcContext()
                 {
                     Error = true,
@@ -87,7 +87,7 @@ namespace DotNettyCoreRemoting.Handler
 
         public override void ExceptionCaught(IChannelHandlerContext context, Exception exception)
         {
-            Logger.Error(typeof(ServerHandler), $"服务器异常 - 远程地址: {context.Channel.RemoteAddress}", exception);
+            Logger.Error(typeof(ServerHandler), exception, $"服务器异常 - 远程地址: {context.Channel.RemoteAddress}");
             context.CloseAsync();
         }
     }

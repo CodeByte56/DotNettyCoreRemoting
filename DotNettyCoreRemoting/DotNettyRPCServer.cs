@@ -99,6 +99,8 @@ namespace DotNettyCoreRemoting
                     // ✅ 使用新的 ServerHandler
                     pipeline.AddLast(new ServerHandler(this));
                 }));
+
+            Logger.SetLoggerFactory(_serverConfig.LoggerFactory);
         }
 
         #endregion
@@ -130,7 +132,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(DotNettyRPCServer), $"RPC服务器启动失败 - 主机: {_hostName}, 端口: {_port}", ex);
+                Logger.Error(typeof(DotNettyRPCServer), ex, $"RPC服务器启动失败 - 主机: {_hostName}, 端口: {_port}");
                 throw;
             }
         }
@@ -146,7 +148,7 @@ namespace DotNettyCoreRemoting
             }
             catch (Exception ex)
             {
-                Logger.Error(typeof(DotNettyRPCServer), "RPC服务器停止失败", ex);
+                Logger.Error(typeof(DotNettyRPCServer), ex, "RPC服务器停止失败");
                 throw;
             }
         }
