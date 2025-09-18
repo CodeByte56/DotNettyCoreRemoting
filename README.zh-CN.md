@@ -5,7 +5,7 @@
 
 ## 项目介绍
 
-DotNettyCoreRemoting 是一个基于 [DotNetty](https://github.com/Azure/DotNetty) 网络框架实现的高性能、轻量级远程过程调用 (RPC) 库，支持 .NET Core 和 .NET Framework 平台。
+DotNettyCoreRemoting 是一个基于 [DotNetty](https://github.com/Azure/DotNetty) 网络框架实现的高性能、轻量级远程过程调用 (RPC) 库，支持 .NET Core 和 .NET Framework 平台。该项目是在 [CoreRemoting](https://github.com/theRainbird/CoreRemoting.git) 基础修改实现简单版本。
 
 ## 特性
 

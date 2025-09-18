@@ -5,7 +5,7 @@
 
 ## Project Introduction
 
-DotNettyCoreRemoting is a high-performance, lightweight Remote Procedure Call (RPC) library based on the [DotNetty](https://github.com/Azure/DotNetty) networking framework, supporting both .NET Core and .NET Framework platforms.
+DotNettyCoreRemoting is a high-performance, lightweight Remote Procedure Call (RPC) library based on the [DotNetty](https://github.com/Azure/DotNetty) networking framework, supporting both .NET Core and .NET Framework platforms. This project is a modified and simplified implementation based on [CoreRemoting](https://github.com/theRainbird/CoreRemoting.git).
 
 ## Features
 
