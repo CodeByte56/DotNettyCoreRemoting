@@ -77,6 +77,8 @@ namespace DotNettyCoreRemoting.Handler
             try
             {
                 await context.WriteAndFlushAsync(responseBuffer);
+
+                await context.CloseAsync(); // 处理完请求后关闭连接
             }
             finally
             {
