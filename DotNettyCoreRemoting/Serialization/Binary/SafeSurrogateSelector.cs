@@ -31,6 +31,7 @@ namespace DotNettyCoreRemoting.Serialization.Binary
             // register known surrogates for all streaming contexts
             var ctx = new StreamingContext(StreamingContextStates.All);
             SurrogateSelector.AddSurrogate(typeof(DataSet), ctx, new DataSetSurrogate());
+            SurrogateSelector.AddSurrogate(typeof(DataTable), ctx, new DataTableSurrogate());
             SurrogateSelector.AddSurrogate(typeof(WindowsIdentity), ctx, new WindowsIdentitySurrogate());
             // 添加Guid类型的代理，解决嵌套GUID类型的序列化兼容性问题
             SurrogateSelector.AddSurrogate(typeof(Guid), ctx, new GuidSurrogate());
