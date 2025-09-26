@@ -3,10 +3,17 @@ using CoreRemoting.Serialization.Bson;
 using CoreServer;
 using DotNettyCoreRemoting;
 using DotNettyCoreRemoting.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using shared;
 using System.ComponentModel;
 using System.Threading;
 
+var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder
+        .AddConsole() // 输出到控制台
+        .SetMinimumLevel(LogLevel.Information);
+});
 // 创建服务器
 var server = new DotNettyRPCServer(new ServerConfig
 {
@@ -16,6 +23,7 @@ var server = new DotNettyRPCServer(new ServerConfig
     {
         container.RegisterService<IMyFirstServer, MyFirstServer>(ServiceLifetime.SingleCall);
     },
+    LoggerFactory = loggerFactory
 });
 
 // 创建一个事件用于保持服务器运行
@@ -31,9 +39,6 @@ AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
 
 // 启动服务器
 server.Start();
-
-Console.WriteLine("Server IS Run");
-Console.WriteLine("服务器已启动，按任意键停止...");
 
 // 等待用户按键或进程退出
 Thread thread = new Thread(() =>

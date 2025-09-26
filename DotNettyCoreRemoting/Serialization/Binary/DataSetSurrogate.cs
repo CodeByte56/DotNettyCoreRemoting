@@ -126,26 +126,24 @@ namespace DotNettyCoreRemoting.Serialization.Binary
                 return schema;
 
             bool isFramework = IsNetFramework;
-
-            // ✅ 用于正则匹配（转义后的字符串）
-            string sourceAssemblyRegex = isFramework ? "System\\.Private\\.CoreLib" : "mscorlib";
-
-            // ✅ 如果不包含目标程序集，直接返回
-            if (schema.IndexOf(isFramework ? "System.Private.CoreLib" : "mscorlib", StringComparison.OrdinalIgnoreCase) < 0)
-                return schema;
-
+            string sourceAssembly = isFramework ? "System.Private.CoreLib" : "mscorlib";
             string targetAssembly = isFramework ? "mscorlib" : "System.Private.CoreLib";
             string targetPublicKeyToken = isFramework ? "b77a5c561934e089" : "7cec85d7bea7798e";
 
-            return Regex.Replace(schema,
-                $@"msdata:DataType=""System\.(\w+),\s*{sourceAssemblyRegex}[^""]*""",
-                match =>
-                {
-                    string typeName = match.Groups[1].Value;
-                    return $"msdata:DataType=\"System.{typeName}, {targetAssembly}, Version=4.0.0.0, Culture=neutral, PublicKeyToken={targetPublicKeyToken}\"";
-                },
-                RegexOptions.IgnoreCase);
+            if (schema.IndexOf(sourceAssembly, StringComparison.OrdinalIgnoreCase) < 0)
+                return schema;
+
+            return DataTypeRegex.Replace(schema, match =>
+            {
+                string typeName = match.Groups[1].Value;
+                return $"msdata:DataType=\"System.{typeName}, {targetAssembly}, Version=4.0.0.0, Culture=neutral, PublicKeyToken={targetPublicKeyToken}\"";
+            });
         }
 
-    }
+
+        private static readonly Regex DataTypeRegex = new Regex(
+            @"msdata:DataType=""System\.(\w+),\s*(System\.Private\.CoreLib|mscorlib)[^""]*""",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            }
 }

@@ -38,6 +38,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\DotNettyCoreRemoting\DotNettyCoreRemoting.csproj">
+      <Project>{16c7a607-6b4c-2756-76bb-9143430bea36}</Project>
+      <Name>DotNettyCoreRemoting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\shared\shared.csproj">
       <Project>{C17F748C-74B7-4B66-EDCB-FD378D75D3A1}</Project>
       <Name>shared</Name>
@@ -64,9 +68,6 @@
     </Reference>
     <Reference Include="DotNetty.Transport, Version=0.7.6.0, Culture=neutral, PublicKeyToken=bc13ca065fa06c29, processorArchitecture=MSIL">
       <HintPath>..\..\packages\DotNetty.Transport.0.7.6\lib\net472\DotNetty.Transport.dll</HintPath>
-    </Reference>
-    <Reference Include="DotNettyCoreRemoting, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\DotNettyCoreRemoting.1.2.2.6\lib\net48\DotNettyCoreRemoting.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.9, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.9\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
